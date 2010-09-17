@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>hs.js console</title>
+	<script type="text/javascript" src="./jquery-1.4.2.min.js"></script>
+	<script type="text/javascript" src="../src/s_parser.js"></script>
+	<script type="text/javascript" src="../src/hs.js"></script>
+</head>
+<body>
+	<h1 id="qunit-header">hs.js console</h1>
+	<dl id="result">
+	</dl>
+	<div>
+		<form id="console">
+			<input type="text" name="cmd" id="cmd" size="80" />
+			<input type="submit" name="exec" id="exec" value="exec" />
+		</form>
+	</div>
+	<script>
+		var hs=new HS();
+		function inspect(obj) {
+			if(obj===null) return '[]';
+			if(obj===void(0)) return 'undefined';
+			var t=typeof(obj);
+			if(t=='string') return '"'+obj+'"';
+			return obj;
+		}
+		$('#console').submit(function(){
+			var cmd=$('#cmd').val();
+			var result_log=$('#result');
+			result_log.append($('<dt/>').append(document.createTextNode(cmd)));
+
+			try {
+				var result=hs.eval_s(cmd);
+				if(result) {
+					var res_value=result.value.force();
+					var res_type=result.type;
+					result_log.append(
+						$('<dd class="normal"/>').append(
+							$('<span class="value"/>').append(document.createTextNode(inspect(res_value)))
+						).append(
+							document.createTextNode(' :: ')
+						).append(
+							$('<span class="type"/>').append(document.createTextNode(res_type.inspect())) )
+						);
+				}
+			} catch(e) {
+				result_log.append(
+					$('<dd class="error"/>').append(document.createTextNode(e)) );
+			}
+
+			$('#cmd').val('');
+			return false;
+		});
+		$(function() {
+			$('#cmd').focus();
+		});
+	</script>
+</body>
+</html>
