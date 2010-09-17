@@ -3,6 +3,7 @@ var SExpr={}
 SExpr.Cons=function(car,cdr) {
 	this.car=car;
 	this.cdr=cdr;
+	this.isCons=true;
 }
 SExpr.Cons.makeList=function() {
 	return SExpr.Cons.makeUnproperList(arguments,null);
@@ -15,7 +16,10 @@ SExpr.Cons.makeUnproperList=function(heads,last) {
 }
 
 SExpr.Symbol=function(name) {
-	this.name=name;
+	return {
+		isSymbol: true,
+		name: name
+	}
 }
 
 
