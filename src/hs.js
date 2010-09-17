@@ -7,7 +7,11 @@ HS.prototype={
 	},
 	eval: function(exp) {
 		var m=new HS.Matcher();
-		if(m.match(exp,'(:bind _1:symbol _2)')) { // bind value
+		if(m.match(exp,'(:def _1:symbol _2:symbol)')) { // type decl
+			var name=m._[1].name;
+			var t_name=m._[2].name;
+			this.env.decl(name,this.env.getT(t_name));
+		} else if(m.match(exp,'(:bind _1:symbol _2)')) { // bind value
 			var name=m._[1].name;
 			var value=this.eval(m._[2]);
 			this.env.bind(name,value)
@@ -93,6 +97,9 @@ HS.Type.prototype={
 	apply: function(typeArgs) {
 		return new HS.Type(this.name,this.argsCount,typeArgs||arguments);
 	},
+	acceptable: function(type) {
+		return this==type;
+	},
 	inspect: function() {
 		var s=this.name;
 		var unboundIndex=1;
@@ -119,15 +126,38 @@ HS.Env=function(parent) {
 }
 HS.Env.prototype={
 	bind: function(name,value) {
-		if(this.bindings[name])
-			throw 'ERROR: already bounded: '+name;
-		this.bindings[name]=value;
+		var bounded=this.bindings[name];
+		if(bounded) {
+			if(bounded.value)
+				throw 'ERROR: already bounded: '+name;
+			if(!bounded.type.acceptable(value.type))
+				throw 'ERROR: type mismatch: '+name+' has '+
+					bounded.type.inspect()+' but value has '+value.type.inspect();
+			bounded.value=value.value;
+		} else {
+			this.bindings[name]=value;
+		}
+	},
+	decl: function(name,type) {
+		var bounded=this.bindings[name];
+		if(bounded)
+			throw 'ERROR: binding '+name+' is already exists';
+		this.bindings[name]={
+			type: type,
+			value: null
+		};
 	},
 	get: function(name) {
-		var found=this.bindings[name];
-		if(!found)
-			throw "ERROR: unbound name: "+name;
-		return found;
+		return this._get('binding','bindings',name);
+	},
+	getT: function(name) {
+		return this._get('type','types',name);
+	},
+	_get: function(desc,namespace,name) {
+		var found=this[namespace][name];
+		if(found) return found;
+		if(this.parent) return this.parent._get(desc,namespace,name);
+		throw 'ERROR: unbound '+desc+': '+name;
 	}
 };
 

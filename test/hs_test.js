@@ -50,6 +50,25 @@ test('eval: bind double',function(){
 	raises(function(){ self.ev('(:bind a 100)') });
 });
 
+test('eval: type declaration',function(){
+	var evv=this.evv;
+	var evt=this.evt;
+	var ev=this.ev;
+
+	ev('(:def a Number)');
+	eq(evt('a'),HS.Type.Number);
+	ev('(:bind a 100)');
+	eq(evt('a'),HS.Type.Number);
+	eq(evv('a'),100);
+
+	ev('(:def b Number)');
+	// type mismatch
+	raises(function(){ ev('(:bind b "hoge")') });
+
+	// decl for undefined type
+	raises(function(){ev('(:def a UndefType)')});
+});
+
 test('type inspect',function(){
 	var ct=this.ct;
 	eq(ct('Hoge').inspect(),'Hoge')
