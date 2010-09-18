@@ -174,7 +174,7 @@ HS.Matcher.prototype={
 			} else {
 				return exp && exp.isSymbol && exp.name==pat.name;
 			}
-		} if(pat.isCons) {
+		} else if(pat.isCons) {
 			return exp &&
 				exp.isCons &&
 				this._match(exp.car,pat.car) &&
