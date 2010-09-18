@@ -52,7 +52,7 @@ test('eval: bind',function() {
 	eq(evt('a'),HS.Type.Number);
 });
 
-test('eval: refer unbound name',function(){
+test('eval: refer unbounded name',function(){
 	var self=this;
 	raises(function(){ self.ev('a')});
 });
