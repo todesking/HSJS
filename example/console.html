@@ -25,7 +25,8 @@
 				var l=[];
 				for(var c=obj;c.isArray;c=c.cdr()) {
 					l.push(inspect_value(c.car()));
-					if(l.length>=L) {
+					if(l.length>L) {
+						l.pop();
 						l.push('...');
 						break;
 					}

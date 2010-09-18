@@ -9,8 +9,10 @@ module('HS',{
 			var list=[];
 			for(var c=r;c.isArray;c=c.cdr()) {
 				list.push(expandAll(c.car(),maxLen));
-				if(maxLen && list.length>=maxLen)
+				if(maxLen && list.length>maxLen) {
+					list.pop();
 					break;
+				}
 			}
 			return list;
 		}
