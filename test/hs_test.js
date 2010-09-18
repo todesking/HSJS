@@ -34,6 +34,7 @@ test('eval: list',function() {
 	var evt=this.evt;
 	var ev=this.ev;
 	var s=this.s;
+	var mkl=SExpr.Cons.makeList;
 
 	eq(evv('(1 2 3)'),s('(1 2 3)'));
 	eq(evt('(1 2 3)'),HS.Type.Array.apply(HS.Type.Number));
@@ -41,8 +42,15 @@ test('eval: list',function() {
 	eq(evt('("a" "b")'),
 		HS.Type.Array.apply(HS.Type.Array.apply(HS.Type.Character)));
 
+	eq(evt('((1) (1 2))'),
+		HS.Type.Array.apply(HS.Type.Array.apply(HS.Type.Numnber)));
+	eq(evv('((1) (1 2))'),mkl(mkl(1),mkl(1,2)));
+
 	ev('(:bind a 1)');
 	eq(evt('(a 2 3)'),HS.Type.Array.apply(HS.Type.Number));
+
+	eq(evv('(a a)'),mkl(1,1));
+
 });
 
 test('eval: bind',function() {

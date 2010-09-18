@@ -6,6 +6,7 @@ HS.prototype={
 		return this.eval(new SParser().parseSingle(src));
 	},
 	eval: function(exp) {
+		var self=this;
 		var m=new HS.Matcher();
 		if(m.match(exp,'(:def _1:symbol _2:symbol)')) { // type decl
 			var name=m._[1].name;
@@ -17,6 +18,25 @@ HS.prototype={
 			this.env.bind(name,value)
 		} else if(m.match(exp,'_1:symbol')) { // lookup
 			return this.env.get(m._[1].name);
+		} else if(exp.isCons) { // list
+			var types=[];
+			for(var c=exp;c!==null;c=c.cdr)
+				types.push(this.eval(c.car).type);
+			var t=types[0];
+			for(var i=1;i<types.length;i++) {
+				t=HS.Type.superTypeOf(t,types[i]);
+				if(t===undefined)
+					throw 'ERROR: can\'t inference the list type';
+			}
+			return {
+				type: HS.Type.Array.apply(t),
+				value: new HS.Promise(function() {
+					var r=[];
+					for(var c=exp;c!==null;c=c.cdr)
+						r.push(self.eval(c.car));
+					return SExpr.Cons.makeList.apply(null,r);
+				})
+			};
 		} else { // const
 			return {
 				type: this._typeOf(exp),
@@ -32,17 +52,6 @@ HS.prototype={
 			return HS.Type.Number;
 		} else if(ts=='string') {
 			return HS.Type.Array.apply(HS.Type.Character);
-		} else if(exp.isCons) {
-			var types=[];
-			for(var c=exp;c!==null;c=c.cdr)
-				types.push(this.eval(c.car).type);
-			var t=types[0];
-			for(var i=1;i<types.length;i++) {
-				t=HS.Type.superTypeOf(t,types[i]);
-				if(t===undefined)
-					throw 'ERROR: can\'t inference the list type';
-			}
-			return HS.Type.Array.apply(t);
 		} else {
 			throw 'ERROR: not valid type: '+exp;
 		}
