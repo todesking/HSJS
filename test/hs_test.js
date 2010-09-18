@@ -171,6 +171,16 @@ test('eval: function call',function() {
 	eq(this.evvs('($ n2s 100)'),"100");
 });
 
+test('eval: define function',function(){
+	var ev=this.ev;
+	var evvs=this.evvs;
+
+	// TODO: free type ctor argument
+	ev('(:def my_head_n (-> (Array Number) Number))');
+	ev('(:bind_fun my_head (_x . _xs) _x)');
+	eq(evvs('($ my_head (1 2 3))'),1);
+});
+
 test('type inspect',function(){
 	var ct=this.ct;
 	eq(ct('Hoge').inspect(),'Hoge')

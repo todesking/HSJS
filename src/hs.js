@@ -17,6 +17,20 @@ HS.prototype={
 				args.push(this.eval(c.car));
 			// TODO: arg length check
 			return fun.value().apply(args);
+		} else if(m.match(exp,'(:bind_fun _n:symbol _pat _body)')) { // funcall
+			// TODO: _args:list syntax for matcher
+			var declared=this.env.get(m._.n.name);
+			if(!declared)
+				throw 'functions must be specified argument type before bind body';
+			// TODO: type check(Function)
+			if(declared.undef) {
+				// TODO: static to instance member
+				var f=HS.Type.Function.createinstance(declared.type);
+				declared.value=function() {return f}
+				declared.undef=false;
+			}
+			var f=declared.value();
+			f.addDef(m._.pat,m._.body);
 		} else if(m.match(exp,'(:def _1:symbol _2)')) { // type decl
 			var name=m._[1].name;
 			var type=this.evalType(m._[2]);
@@ -217,6 +231,37 @@ HS.Type.Number=new HS.Type('Number');
 HS.Type.Character=new HS.Type('Character');
 HS.Type.Array=new HS.Type('Array',1);
 HS.Type.Function=new HS.Type('Function',2); // arg_t -> ret_t
+HS.Type.Function.createinstance=function(fun_t) {
+	var instance={
+		type: fun_t,
+		value: function() {
+			var self=this;
+			return {
+				apply: function(args) {
+					for(var i=0;i<self._defs.length;i++) {
+						var d=self._defs[i];
+						if(d.accepts(args))
+							return d.apply(args);
+					}
+					// TODO: more information
+					throw 'ERROR: No matches';
+				}
+			}
+		},
+		addDef: function(pat,body) {
+			this._defs.push({
+				accepts: function(args) {
+					// TODO: do something with pat,args
+				},
+				apply: function(args) {
+					// TODO: do something with pat,args,body
+				}
+			});
+		},
+		_defs: []
+	};
+	return instance;
+};
 HS.Type.Function.multi=function(arg_ts) {
 	var len=arg_ts.length;
 	if(len<2) throw 'ERROR: function ctor needs >=2 params';
