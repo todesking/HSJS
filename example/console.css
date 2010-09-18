@@ -1,0 +1,11 @@
+.log {
+	font-family: monospace;
+}
+
+.log .error {
+	color: red;
+}
+
+#cmd {
+	font-family: monospace;
+}
