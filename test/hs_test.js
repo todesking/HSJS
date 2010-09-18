@@ -72,6 +72,12 @@ test('eval: list',function() {
 	eq(evvl('(a a)'),[1,1]);
 });
 
+test('eval: range',function() {
+	var evvl=this.evvl;
+
+	eq(evvl('([..] 1 3)'),[1,2,3]);
+});
+
 test('eval: bind',function() {
 	var evvs=this.evvs;
 	var evt=this.evt;

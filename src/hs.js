@@ -16,6 +16,8 @@ HS.prototype={
 			var name=m._[1].name;
 			var value=this.eval(m._[2]);
 			this.env.bind(name,value)
+		} else if(m.match(exp,'([..] _1 _2)')) {
+			return this._makeRange(m._[1],m._[2]);
 		} else if(m.match(exp,'_1:symbol')) { // lookup
 			return this.env.get(m._[1].name);
 		} else if(exp===null) {
@@ -68,6 +70,19 @@ HS.prototype={
 			type: type,
 			car: function() { return self.eval(cons.car) },
 			cdr: function() { return self._makeList(type,cons.cdr) }
+		}
+	},
+	_makeRange: function(start,end) {
+		var self=this;
+		return {
+			isArray: true,
+			type: HS.Type.Array.apply(HS.Type.Number),
+			car: function() { return self._makeScalar(start); },
+			cdr: function() {
+				if(start==end)
+					return self._makeScalar(null);
+				return self._makeRange(start+1,end)
+			}
 		}
 	}
 }

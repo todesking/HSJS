@@ -58,7 +58,7 @@ SParser.prototype={
 		}
 	},
 	_isNumeric: function(c){ return /^\d$/.test(c); },
-	_isSymbol: function(c){ return /^[-+*\/\\=!?$#@%^&|<>:_a-zA-Z0-9]$/.test(c); },
+	_isSymbol: function(c){ return /^[-+*\/\\=!?$#@%^&|<>:_\[\].a-zA-Z0-9]$/.test(c); },
 	_parseNumeric: function(r) {
 		var str='';
 		while(!r.isEOF() && this._isNumeric(r.peek())) {
