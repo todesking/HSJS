@@ -32,6 +32,7 @@ test('eval: simple literal',function(){
 test('eval: list',function() {
 	var evv=this.evv;
 	var evt=this.evt;
+	var ev=this.ev;
 	var s=this.s;
 
 	eq(evv('(1 2 3)'),s('(1 2 3)'));
@@ -39,6 +40,9 @@ test('eval: list',function() {
 
 	eq(evt('("a" "b")'),
 		HS.Type.Array.apply(HS.Type.Array.apply(HS.Type.Character)));
+
+	ev('(:bind a 1)');
+	eq(evt('(a 2 3)'),HS.Type.Array.apply(HS.Type.Number));
 });
 
 test('eval: bind',function() {

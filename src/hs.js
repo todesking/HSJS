@@ -35,7 +35,7 @@ HS.prototype={
 		} else if(exp.isCons) {
 			var types=[];
 			for(var c=exp;c!==null;c=c.cdr)
-				types.push(this._typeOf(c.car));
+				types.push(this.eval(c.car).type);
 			var t=types[0];
 			for(var i=1;i<types.length;i++) {
 				t=HS.Type.superTypeOf(t,types[i]);
