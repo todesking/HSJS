@@ -25,11 +25,17 @@ HS.prototype={
 		}
 	},
 	_typeOf: function(exp) {
+		if(exp===null)
+			return HS.Type.Array
 		var ts=typeof(exp);
 		if(ts=='number') {
 			return HS.Type.Number;
 		} else if(ts=='string') {
 			return HS.Type.Array.apply(HS.Type.Character);
+		} else if(exp.isCons) {
+			throw 'NIMPL';
+		} else {
+			throw 'ERROR: not valid type: '+exp;
 		}
 	}
 }
@@ -60,8 +66,8 @@ HS.Matcher.prototype={
 		return this._match(exp,new SParser().parseSingle(pat_str));
 	},
 	_match: function(exp,pat) {
-		if(pat==null || exp==null) {
-			return exp==pat;
+		if(pat===null || exp===null) {
+			return exp===pat;
 		} else if(pat.isSymbol) {
 			var pat_p=/^_([a-zA-Z0-9]*)(?::(symbol))?$/.exec(pat.name);
 			if(pat_p) {
@@ -131,7 +137,7 @@ HS.Env.prototype={
 			if(bounded.value)
 				throw 'ERROR: already bounded: '+name;
 			if(!bounded.type.acceptable(value.type))
-				throw 'ERROR: type mismatch: '+name+' has '+
+				throw 'ERROR: type mismatch: '+name+'\'s type is '+
 					bounded.type.inspect()+' but value has '+value.type.inspect();
 			bounded.value=value.value;
 		} else {
@@ -144,7 +150,7 @@ HS.Env.prototype={
 			throw 'ERROR: binding '+name+' is already exists';
 		this.bindings[name]={
 			type: type,
-			value: null
+			value: undefined
 		};
 	},
 	get: function(name) {
