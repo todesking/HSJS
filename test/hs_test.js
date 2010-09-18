@@ -159,21 +159,15 @@ test('eval: function type',function(){
 });
 
 test('eval: function call',function() {
-	this.hs.env.bind('n2s',{
-		type: HS.Type.Function.apply(HS.Type.Number,HS.Type.String),
-		value: function() {
-			return {
-				apply: function(args) {
-					var n=args[0].value();
-					return {
-						isArray:false,
-						type:HS.Type.String,
-						value:function(){return ''+n;}
-					};
-				}
+	this.hs.env.bind('n2s',
+		HS.Type.Function.adapterFromNative(
+			[HS.Type.Number,HS.Type.String],
+			function(arg) {
+				var n=arg.value();
+				return ''+n;
 			}
-		}
-	});
+		)
+	);
 	eq(this.evvs('($ n2s 100)'),"100");
 });
 

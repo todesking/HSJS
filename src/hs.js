@@ -47,13 +47,7 @@ HS.prototype={
 			var types=[];
 			for(var c=m._[1];c!==null;c=c.cdr)
 				types.push(this.evalType(c.car));
-			if(types.length<2) throw 'ERROR: function ctor needs >=2 params';
-			var fun_t=HS.Type.Function.apply(
-				types[types.length-2],
-				types[types.length-1])
-			for(var i=types.length-3; i>=0; i--)
-				fun_t=HS.Type.Function.apply(types[i],fun_t);
-			return fun_t;
+			return HS.Type.Function.multi(types);
 		} else if(m.match(exp,'(_1 . _2)')) {
 			var t_ctor=this.evalType(m._[1]);
 			var t_args=[];
@@ -223,6 +217,30 @@ HS.Type.Number=new HS.Type('Number');
 HS.Type.Character=new HS.Type('Character');
 HS.Type.Array=new HS.Type('Array',1);
 HS.Type.Function=new HS.Type('Function',2); // arg_t -> ret_t
+HS.Type.Function.multi=function(arg_ts) {
+	var len=arg_ts.length;
+	if(len<2) throw 'ERROR: function ctor needs >=2 params';
+	var fun_t=HS.Type.Function.apply(arg_ts[len-2],arg_ts[len-1])
+	for(var i=len-3; i>=0; i--)
+		fun_t=HS.Type.Function.apply(arg_ts[i],fun_t);
+	return fun_t;
+};
+HS.Type.Function.adapterFromNative=function(arg_ts,func) {
+	return {
+		type: HS.Type.Function.multi(arg_ts),
+		value: function(){
+			return {
+				apply: function(args) {
+					var value=func.apply(null,args);
+					return {
+						type: arg_ts[arg_ts.length-1],
+						value: function() { return value; }
+					}
+				}
+			};
+		}
+	}
+};
 
 HS.Env=function(parent) {
 	this.parent=parent;
