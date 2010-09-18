@@ -3,11 +3,26 @@ module('HS',{
 		var parser=new SParser();
 		var hs=new HS();
 		this.s=function(src){return parser.parseSingle(src);}
+		function expandAll(r) {
+			if(!r.isArray)
+				return r.value();
+			var list=[];
+			for(var c=r;c.isArray;c=c.cdr())
+				list.push(expandAll(c.car()));
+			return list;
+		}
 		var ev=this.ev=function(src) {
 			return hs.eval(parser.parseSingle(src));
 		}
-		var evv=this.evv=function(src) {
-			return ev(src).value.force();
+		var evv=this.evvs=function(src) {
+			var r=ev(src);
+			ok(!r.isArray);
+			return r.value();
+		}
+		var evvl=this.evvl=function(src) {
+			var r=ev(src);
+			ok(r===null || r.isArray);
+			return expandAll(r);
 		}
 		var evt=this.evt=function(src) {
 			return ev(src).type;
@@ -19,48 +34,52 @@ module('HS',{
 })
 
 test('eval: simple literal',function(){
-	var evv=this.evv;
+	var evvs=this.evvs;
 	var evt=this.evt;
 
-	eq(evv('1'),1);
-	eq(evv('"a"'),"a");
+	eq(evvs('1'),1);
+	eq(evvs('"a"'),"a");
 
 	eq(evt('1'),HS.Type.Number);
 	eq(evt('"a"'),HS.Type.Array.apply(HS.Type.Character));
 })
 
 test('eval: list',function() {
-	var evv=this.evv;
+	var evvl=this.evvl;
+	var evvs=this.evvs;
 	var evt=this.evt;
 	var ev=this.ev;
 	var s=this.s;
-	var mkl=SExpr.Cons.makeList;
 
-	eq(evv('(1 2 3)'),s('(1 2 3)'));
-	eq(evt('(1 2 3)'),HS.Type.Array.apply(HS.Type.Number));
+	eq(ev('()').value(),null);
+
+	var r_123=ev('(1 2 3)');
+
+	eq(r_123.type,HS.Type.Array.apply(HS.Type.Number));
+	eq(evvl('(1 2 3)'),[1,2,3]);
+
 
 	eq(evt('("a" "b")'),
 		HS.Type.Array.apply(HS.Type.Array.apply(HS.Type.Character)));
 
 	eq(evt('((1) (1 2))'),
 		HS.Type.Array.apply(HS.Type.Array.apply(HS.Type.Numnber)));
-	eq(evv('((1) (1 2))'),mkl(mkl(1),mkl(1,2)));
+	eq(evvl('((1) (1 2))'),[[1],[1,2]]);
 
 	ev('(:bind a 1)');
 	eq(evt('(a 2 3)'),HS.Type.Array.apply(HS.Type.Number));
 
-	eq(evv('(a a)'),mkl(1,1));
-
+	eq(evvl('(a a)'),[1,1]);
 });
 
 test('eval: bind',function() {
-	var evv=this.evv;
+	var evvs=this.evvs;
 	var evt=this.evt;
 	var ev=this.ev;
 
 	ev('(:bind a 1)');
 
-	eq(evv('a'),1);
+	eq(evvs('a'),1);
 	eq(evt('a'),HS.Type.Number);
 });
 
@@ -76,7 +95,7 @@ test('eval: bind double',function(){
 });
 
 test('eval: type declaration',function(){
-	var evv=this.evv;
+	var evvs=this.evvs;
 	var evt=this.evt;
 	var ev=this.ev;
 
@@ -84,7 +103,7 @@ test('eval: type declaration',function(){
 	eq(evt('a'),HS.Type.Number);
 	ev('(:bind a 100)');
 	eq(evt('a'),HS.Type.Number);
-	eq(evv('a'),100);
+	eq(evvs('a'),100);
 
 	ev('(:def b Number)');
 	// type mismatch

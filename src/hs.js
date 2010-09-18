@@ -18,33 +18,15 @@ HS.prototype={
 			this.env.bind(name,value)
 		} else if(m.match(exp,'_1:symbol')) { // lookup
 			return this.env.get(m._[1].name);
+		} else if(exp===null) {
+			return this._makeScalar(exp);
 		} else if(exp.isCons) { // list
-			var types=[];
-			for(var c=exp;c!==null;c=c.cdr)
-				types.push(this.eval(c.car).type);
-			var t=types[0];
-			for(var i=1;i<types.length;i++) {
-				t=HS.Type.superTypeOf(t,types[i]);
-				if(t===undefined)
-					throw 'ERROR: can\'t inference the list type';
-			}
-			return {
-				type: HS.Type.Array.apply(t),
-				value: new HS.Promise(function() {
-					var r=[];
-					for(var c=exp;c!==null;c=c.cdr)
-						r.push(self.eval(c.car));
-					return SExpr.Cons.makeList.apply(null,r);
-				})
-			};
+			return this._makeList(this._arrayTypeOf(exp),exp);
 		} else { // const
-			return {
-				type: this._typeOf(exp),
-				value: new HS.Promise(function(){return exp;})
-			}
+			return this._makeScalar(exp);
 		}
 	},
-	_typeOf: function(exp) {
+	_scalarTypeOf: function(exp) {
 		if(exp===null)
 			return HS.Type.Array
 		var ts=typeof(exp);
@@ -54,6 +36,38 @@ HS.prototype={
 			return HS.Type.Array.apply(HS.Type.Character);
 		} else {
 			throw 'ERROR: not valid type: '+exp;
+		}
+	},
+	_arrayTypeOf: function(exp) {
+		  var types=[];
+		  for(var c=exp;c!==null;c=c.cdr) {
+			  var v=this.eval(c.car);
+			  types.push(v.type);
+		  }
+		  var t=types[0];
+		  for(var i=1;i<types.length;i++) {
+			  t=HS.Type.superTypeOf(t,types[i]);
+			  if(t===undefined)
+				  throw 'ERROR: can\'t inference the list type';
+		  }
+		  return HS.Type.Array.apply(t);
+	},
+	_makeScalar: function(exp) {
+		return {
+			isArray: false,
+			type: this._scalarTypeOf(exp),
+			value: function(){return exp;}
+		}
+	},
+	_makeList: function(type,cons) {
+		var self=this;
+		if(cons===null)
+			return self._makeScalar(null);
+		return {
+			isArray: true,
+			type: type,
+			car: function() { return self.eval(cons.car) },
+			cdr: function() { return self._makeList(type,cons.cdr) }
 		}
 	}
 }

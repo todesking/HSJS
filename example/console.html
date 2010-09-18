@@ -19,18 +19,18 @@
 	</div>
 	<script>
 		var hs=new HS();
-		function inspect(obj) {
-			if(obj===null) return '[]';
-			if(obj===void(0)) return 'undefined';
-			var t=typeof(obj);
-			if(t=='string') return '"'+obj+'"';
-			if(obj.isCons) {
-				var a=[];
-				for(var c=obj;c!==null;c=c.cdr)
-					a.push(inspect(c.car));
-				return '('+a.join(' ')+')';
+		function inspect_value(obj) {
+			if(obj.isArray) {
+				var l=[];
+				for(var c=obj;c.isArray;c=c.cdr())
+					l.push(inspect_value(c.car()));
+				return '('+l.join(' ')+')';
+			} else {
+				var v=obj.value();
+				if(v===null) return '[]';
+				if(typeof(v)=='string') return '"'+v+'"';
+				return v;
 			}
-			return obj;
 		}
 		$('#console').submit(function(){
 			var cmd=$('#cmd').val();
@@ -40,11 +40,11 @@
 			try {
 				var result=hs.eval_s(cmd);
 				if(result) {
-					var res_value=result.value.force();
+					var res_value_s=inspect_value(result);
 					var res_type=result.type;
 					result_log.append(
 						$('<dd class="normal"/>').append(
-							$('<span class="value"/>').append(document.createTextNode(inspect(res_value)))
+							$('<span class="value"/>').append(document.createTextNode(res_value_s))
 						).append(
 							document.createTextNode(' :: ')
 						).append(
