@@ -3,12 +3,15 @@ module('HS',{
 		var parser=new SParser();
 		var hs=new HS();
 		this.s=function(src){return parser.parseSingle(src);}
-		function expandAll(r) {
+		function expandAll(r,maxLen) {
 			if(!r.isArray)
 				return r.value();
 			var list=[];
-			for(var c=r;c.isArray;c=c.cdr())
-				list.push(expandAll(c.car()));
+			for(var c=r;c.isArray;c=c.cdr()) {
+				list.push(expandAll(c.car(),maxLen));
+				if(maxLen && list.length>=maxLen)
+					break;
+			}
 			return list;
 		}
 		var ev=this.ev=function(src) {
@@ -19,10 +22,10 @@ module('HS',{
 			ok(!r.isArray);
 			return r.value();
 		}
-		var evvl=this.evvl=function(src) {
+		var evvl=this.evvl=function(src,maxLen) {
 			var r=ev(src);
 			ok(r===null || r.isArray);
-			return expandAll(r);
+			return expandAll(r,maxLen);
 		}
 		var evt=this.evt=function(src) {
 			return ev(src).type;
@@ -76,6 +79,10 @@ test('eval: range',function() {
 	var evvl=this.evvl;
 
 	eq(evvl('([..] 1 3)'),[1,2,3]);
+});
+
+test('eval: infiniterange',function() {
+	eq(this.evvl('([..] 3)',5),[3,4,5,6,7]);
 });
 
 test('eval: bind',function() {

@@ -18,6 +18,8 @@ HS.prototype={
 			this.env.bind(name,value)
 		} else if(m.match(exp,'([..] _1 _2)')) {
 			return this._makeRange(m._[1],m._[2]);
+		} else if(m.match(exp,'([..] _1)')) {
+			return this._makeRange(m._[1],null);
 		} else if(m.match(exp,'_1:symbol')) { // lookup
 			return this.env.get(m._[1].name);
 		} else if(exp===null) {
@@ -79,7 +81,7 @@ HS.prototype={
 			type: HS.Type.Array.apply(HS.Type.Number),
 			car: function() { return self._makeScalar(start); },
 			cdr: function() {
-				if(start==end)
+				if(end!==null && start==end)
 					return self._makeScalar(null);
 				return self._makeRange(start+1,end)
 			}

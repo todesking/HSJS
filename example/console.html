@@ -20,10 +20,16 @@
 	<script>
 		var hs=new HS();
 		function inspect_value(obj) {
+			var L=10;
 			if(obj.isArray) {
 				var l=[];
-				for(var c=obj;c.isArray;c=c.cdr())
+				for(var c=obj;c.isArray;c=c.cdr()) {
 					l.push(inspect_value(c.car()));
+					if(l.length>=L) {
+						l.push('...');
+						break;
+					}
+				}
 				return '('+l.join(' ')+')';
 			} else {
 				var v=obj.value();
