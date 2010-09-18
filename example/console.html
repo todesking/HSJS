@@ -24,6 +24,12 @@
 			if(obj===void(0)) return 'undefined';
 			var t=typeof(obj);
 			if(t=='string') return '"'+obj+'"';
+			if(obj.isCons) {
+				var a=[];
+				for(var c=obj;c!==null;c=c.cdr)
+					a.push(inspect(c.car));
+				return '('+a.join(' ')+')';
+			}
 			return obj;
 		}
 		$('#console').submit(function(){
