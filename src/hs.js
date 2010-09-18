@@ -8,7 +8,16 @@ HS.prototype={
 	eval: function(exp) {
 		var self=this;
 		var m=new HS.Matcher();
-		if(m.match(exp,'(:def _1:symbol _2)')) { // type decl
+		if(m.match(exp,'($ . (_1 . _2))')) { // function call
+			var fun=this.eval(m._[1]);
+			if(fun.type.name!='Function') // TODO: Type#kindOf
+				throw 'ERROR: attempt to call not function object'
+			var args=[];
+			for(var c=m._[2];c!==null;c=c.cdr)
+				args.push(this.eval(c.car));
+			// TODO: arg length check
+			return fun.value().apply(args);
+		} else if(m.match(exp,'(:def _1:symbol _2)')) { // type decl
 			var name=m._[1].name;
 			var type=this.evalType(m._[2]);
 			this.env.decl(name,type);
@@ -270,5 +279,6 @@ HS.Prelude.types={
 	Number: HS.Type.Number,
 	Character: HS.Type.Character,
 	Array: HS.Type.Array,
+	String: HS.Type.Array.apply(HS.Type.Character),
 	Function: HS.Type.Function
 };

@@ -1,7 +1,7 @@
 module('HS',{
 	setup:function(){
 		var parser=new SParser();
-		var hs=new HS();
+		var hs=this.hs=new HS();
 		this.s=function(src){return parser.parseSingle(src);}
 		function expandAll(r,maxLen) {
 			if(!r.isArray)
@@ -156,6 +156,25 @@ test('eval: function type',function(){
 			T.Function.apply(
 				T.Array.apply(T.Number),
 				T.Number))));
+});
+
+test('eval: function call',function() {
+	this.hs.env.bind('n2s',{
+		type: HS.Type.Function.apply(HS.Type.Number,HS.Type.String),
+		value: function() {
+			return {
+				apply: function(args) {
+					var n=args[0].value();
+					return {
+						isArray:false,
+						type:HS.Type.String,
+						value:function(){return ''+n;}
+					};
+				}
+			}
+		}
+	});
+	eq(this.evvs('($ n2s 100)'),"100");
 });
 
 test('type inspect',function(){
