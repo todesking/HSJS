@@ -20,6 +20,8 @@
 	<script>
 		var hs=new HS();
 		function inspect_value(obj) {
+			if(obj.undef)
+				return '<undefined>';
 			var L=10;
 			if(obj.isArray) {
 				var l=[];

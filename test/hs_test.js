@@ -26,7 +26,7 @@ module('HS',{
 		}
 		var evvl=this.evvl=function(src,maxLen) {
 			var r=ev(src);
-			ok(r===null || r.isArray);
+			ok(r.isArray || r.value()===null);
 			return expandAll(r,maxLen);
 		}
 		var evt=this.evt=function(src) {
@@ -111,11 +111,13 @@ test('eval: bind double',function(){
 
 test('eval: type declaration',function(){
 	var evvs=this.evvs;
+	var evvl=this.evvl;
 	var evt=this.evt;
 	var ev=this.ev;
 
 	ev('(:def a Number)');
 	eq(evt('a'),HS.Type.Number);
+	raises(function(){ev('(:bind a "hoge")')});
 	ev('(:bind a 100)');
 	eq(evt('a'),HS.Type.Number);
 	eq(evvs('a'),100);
@@ -126,6 +128,17 @@ test('eval: type declaration',function(){
 
 	// decl for undefined type
 	raises(function(){ev('(:def a UndefType)')});
+
+	ev('(:def an (Array Number))');
+	ev('(:bind an (1 2 3))');
+	eq(evvl('an'),[1,2,3]);
+});
+
+test('eval: type decl with type param',function(){
+	var ev=this.ev;
+
+	ev('(:def a (Array Number))');
+	ok(ev('a').type.isSameType(HS.Type.Array.apply(HS.Type.Number)));
 });
 
 test('type inspect',function(){

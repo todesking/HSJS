@@ -8,17 +8,17 @@ HS.prototype={
 	eval: function(exp) {
 		var self=this;
 		var m=new HS.Matcher();
-		if(m.match(exp,'(:def _1:symbol _2:symbol)')) { // type decl
+		if(m.match(exp,'(:def _1:symbol _2)')) { // type decl
 			var name=m._[1].name;
-			var t_name=m._[2].name;
-			this.env.decl(name,this.env.getT(t_name));
+			var type=this.evalType(m._[2]);
+			this.env.decl(name,type);
 		} else if(m.match(exp,'(:bind _1:symbol _2)')) { // bind value
 			var name=m._[1].name;
 			var value=this.eval(m._[2]);
 			this.env.bind(name,value)
-		} else if(m.match(exp,'([..] _1 _2)')) {
+		} else if(m.match(exp,'([..] _1 _2)')) { // range(start,end)
 			return this._makeRange(m._[1],m._[2]);
-		} else if(m.match(exp,'([..] _1)')) {
+		} else if(m.match(exp,'([..] _1)')) { // range(start)
 			return this._makeRange(m._[1],null);
 		} else if(m.match(exp,'_1:symbol')) { // lookup
 			return this.env.get(m._[1].name);
@@ -28,6 +28,20 @@ HS.prototype={
 			return this._makeList(this._arrayTypeOf(exp),exp);
 		} else { // const
 			return this._makeScalar(exp);
+		}
+	},
+	evalType: function(exp) {
+		var m=new HS.Matcher();
+		if(m.match(exp,'_1:symbol')) {
+			return this.env.getT(m._[1].name);
+		} else if(m.match(exp,'(_1 . _2)')) {
+			var t_ctor=this.evalType(m._[1]);
+			var t_args=[];
+			for(var c=m._[2];c!==null;c=c.cdr)
+				t_args.push(this.evalType(c.car));
+			return t_ctor.applyA(t_args);
+		} else {
+			throw 'Illegal type';
 		}
 	},
 	_scalarTypeOf: function(exp) {
@@ -156,10 +170,13 @@ HS.Type.superTypeOf=function(t1,t2) {
 
 HS.Type.prototype={
 	apply: function() {
-		return new HS.Type(this.name,this.argsCount,arguments);
+		return this.applyA(arguments);
+	},
+	applyA: function(t_args) {
+		return new HS.Type(this.name,this.argsCount,t_args);
 	},
 	acceptable: function(type) {
-		return this==type;
+		return this.isSameType(type);
 	},
 	isSameType: function(other) {
 		if(this.name!=other.name) return false;
@@ -201,7 +218,15 @@ HS.Env.prototype={
 			if(!bounded.type.acceptable(value.type))
 				throw 'ERROR: type mismatch: '+name+'\'s type is '+
 					bounded.type.inspect()+' but value has '+value.type.inspect();
-			bounded.value=value.value;
+			bounded.undef=false;
+			if(value.isArray) {
+				bounded.car=value.car;
+				bounded.cdr=value.cdr;
+				bounded.isArray=true;
+			} else {
+				bounded.value=value.value;
+				bounded.isArray=false;
+			}
 		} else {
 			this.bindings[name]=value;
 		}
@@ -212,7 +237,7 @@ HS.Env.prototype={
 			throw 'ERROR: binding '+name+' is already exists';
 		this.bindings[name]={
 			type: type,
-			value: undefined
+			undef: true
 		};
 	},
 	get: function(name) {
