@@ -2,6 +2,7 @@ module('HS',{
 	setup:function(){
 		var parser=new SParser();
 		var hs=new HS();
+		this.s=function(src){return parser.parseSingle(src);}
 		var ev=this.ev=function(src) {
 			return hs.eval(parser.parseSingle(src));
 		}
@@ -17,7 +18,7 @@ module('HS',{
 	}
 })
 
-test('eval: literal',function(){
+test('eval: simple literal',function(){
 	var evv=this.evv;
 	var evt=this.evt;
 
@@ -27,6 +28,18 @@ test('eval: literal',function(){
 	eq(evt('1'),HS.Type.Number);
 	eq(evt('"a"'),HS.Type.Array.apply(HS.Type.Character));
 })
+
+test('eval: list',function() {
+	var evv=this.evv;
+	var evt=this.evt;
+	var s=this.s;
+
+	eq(evv('(1 2 3)'),s('(1 2 3)'));
+	eq(evt('(1 2 3)'),HS.Type.Array.apply(HS.Type.Number));
+
+	eq(evt('("a" "b")'),
+		HS.Type.Array.apply(HS.Type.Array.apply(HS.Type.Character)));
+});
 
 test('eval: bind',function() {
 	var evv=this.evv;
@@ -79,7 +92,7 @@ test('type inspect',function(){
 
 test('type ctor apply',function() {
 	var ct=this.ct;
-	eq(ct('A',3).apply([ct('B')]).inspect(),'A (B) _1 _2');
+	eq(ct('A',3).apply(ct('B')).inspect(),'A (B) _1 _2');
 });
 
 

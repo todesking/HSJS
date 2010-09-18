@@ -33,7 +33,16 @@ HS.prototype={
 		} else if(ts=='string') {
 			return HS.Type.Array.apply(HS.Type.Character);
 		} else if(exp.isCons) {
-			throw 'NIMPL';
+			var types=[];
+			for(var c=exp;c!==null;c=c.cdr)
+				types.push(this._typeOf(c.car));
+			var t=types[0];
+			for(var i=1;i<types.length;i++) {
+				t=HS.Type.superTypeOf(t,types[i]);
+				if(t===undefined)
+					throw 'ERROR: can\'t inference the list type';
+			}
+			return HS.Type.Array.apply(t);
 		} else {
 			throw 'ERROR: not valid type: '+exp;
 		}
@@ -99,12 +108,25 @@ HS.Type=function(name,argsCount,typeArgs) {
 	this.typeArgs=typeArgs||[];
 }
 
+HS.Type.superTypeOf=function(t1,t2) {
+	if(t1.isSameType(t2))
+		return t1;
+	else return undefined;
+}
+
 HS.Type.prototype={
-	apply: function(typeArgs) {
-		return new HS.Type(this.name,this.argsCount,typeArgs||arguments);
+	apply: function() {
+		return new HS.Type(this.name,this.argsCount,arguments);
 	},
 	acceptable: function(type) {
 		return this==type;
+	},
+	isSameType: function(other) {
+		if(this.name!=other.name) return false;
+		if(this.typeArgs.length!=other.typeArgs.length) return false;
+		for(var i=0;i<this.typeArgs.length;i++)
+			if(!this.typeArgs[i].isSameType(other.typeArgs[i])) return false;
+		return true;
 	},
 	inspect: function() {
 		var s=this.name;
