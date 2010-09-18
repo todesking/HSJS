@@ -34,6 +34,17 @@ HS.prototype={
 		var m=new HS.Matcher();
 		if(m.match(exp,'_1:symbol')) {
 			return this.env.getT(m._[1].name);
+		} else if(m.match(exp,'(-> . _1)')) {
+			var types=[];
+			for(var c=m._[1];c!==null;c=c.cdr)
+				types.push(this.evalType(c.car));
+			if(types.length<2) throw 'ERROR: function ctor needs >=2 params';
+			var fun_t=HS.Type.Function.apply(
+				types[types.length-2],
+				types[types.length-1])
+			for(var i=types.length-3; i>=0; i--)
+				fun_t=HS.Type.Function.apply(types[i],fun_t);
+			return fun_t;
 		} else if(m.match(exp,'(_1 . _2)')) {
 			var t_ctor=this.evalType(m._[1]);
 			var t_args=[];

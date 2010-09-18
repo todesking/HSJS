@@ -141,6 +141,23 @@ test('eval: type decl with type param',function(){
 	ok(ev('a').type.isSameType(HS.Type.Array.apply(HS.Type.Number)));
 });
 
+test('eval: function type',function(){
+	var ev=this.ev;
+	var evt=this.evt;
+	var T=HS.Type;
+
+	ev('(:def a (-> Number Number))');
+	ok(evt('a').isSameType(T.Function.apply(T.Number,T.Number)));
+
+	ev('(:def b (-> Number (Array Number) Number))');
+	ok(evt('b').isSameType(
+		T.Function.apply(
+			T.Number,
+			T.Function.apply(
+				T.Array.apply(T.Number),
+				T.Number))));
+});
+
 test('type inspect',function(){
 	var ct=this.ct;
 	eq(ct('Hoge').inspect(),'Hoge')
@@ -218,4 +235,19 @@ test('match: matchvars with type',function(){
 	ok(!ma('1','_1:symbol'));
 
 	ok(ma('(1 a)','(_1 _2:symbol)'));
+});
+
+
+module('HS.Type');
+
+test('#isSameType',function() {
+	ok(HS.Type.Number.isSameType(HS.Type.Number))
+	ok(HS.Type.Array.apply(HS.Type.Number).
+		isSameType(HS.Type.Array.apply(HS.Type.Number)));
+	ok(!HS.Type.Array.apply(HS.Type.Number).
+		isSameType(HS.Type.Number));
+	ok(HS.Type.Function.apply(HS.Type.Number,HS.Type.Number).isSameType(
+		HS.Type.Function.apply(HS.Type.Number,HS.Type.Number)));
+	ok(!HS.Type.Function.apply(HS.Type.Number,HS.Type.Number).isSameType(
+		HS.Type.Function.apply(HS.Type.Number,HS.Type.Array)));
 });
