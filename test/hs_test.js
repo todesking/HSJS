@@ -32,13 +32,10 @@ module('HS',{
 		var evt=this.evt=function(src) {
 			return ev(src).type;
 		}
-		this.ct=function(name,ac,ta) {
-			return new HS.Type(name,ac,ta);
-		}
 	}
 })
 
-test('eval: simple literal',function(){
+test('simple literal',function(){
 	var evvs=this.evvs;
 	var evt=this.evt;
 
@@ -49,7 +46,7 @@ test('eval: simple literal',function(){
 	eq(evt('"a"'),HS.Type.Array.apply(HS.Type.Character));
 })
 
-test('eval: list',function() {
+test('list',function() {
 	var evvl=this.evvl;
 	var evvs=this.evvs;
 	var evt=this.evt;
@@ -77,17 +74,17 @@ test('eval: list',function() {
 	eq(evvl('(a a)'),[1,1]);
 });
 
-test('eval: range',function() {
+test('range',function() {
 	var evvl=this.evvl;
 
 	eq(evvl('([..] 1 3)'),[1,2,3]);
 });
 
-test('eval: infiniterange',function() {
+test('infiniterange',function() {
 	eq(this.evvl('([..] 3)',5),[3,4,5,6,7]);
 });
 
-test('eval: bind',function() {
+test('bind',function() {
 	var evvs=this.evvs;
 	var evt=this.evt;
 	var ev=this.ev;
@@ -98,18 +95,18 @@ test('eval: bind',function() {
 	eq(evt('a'),HS.Type.Number);
 });
 
-test('eval: refer unbounded name',function(){
+test('refer unbounded name',function(){
 	var self=this;
 	raises(function(){ self.ev('a')});
 });
 
-test('eval: bind double',function(){
+test('bind double',function(){
 	var self=this;
 	self.ev('(:bind a 10)');
 	raises(function(){ self.ev('(:bind a 100)') });
 });
 
-test('eval: type declaration',function(){
+test('type declaration',function(){
 	var evvs=this.evvs;
 	var evvl=this.evvl;
 	var evt=this.evt;
@@ -134,14 +131,14 @@ test('eval: type declaration',function(){
 	eq(evvl('an'),[1,2,3]);
 });
 
-test('eval: type decl with type param',function(){
+test('type decl with type param',function(){
 	var ev=this.ev;
 
 	ev('(:def a (Array Number))');
 	ok(ev('a').type.isSameType(HS.Type.Array.apply(HS.Type.Number)));
 });
 
-test('eval: function type',function(){
+test('function type',function(){
 	var ev=this.ev;
 	var evt=this.evt;
 	var T=HS.Type;
@@ -158,7 +155,7 @@ test('eval: function type',function(){
 				T.Number))));
 });
 
-test('eval: function call',function() {
+test('function call',function() {
 	this.hs.env.bind('n2s',
 		HS.Type.Function.adapterFromNative(
 			[HS.Type.Number,HS.Type.String],
@@ -171,7 +168,7 @@ test('eval: function call',function() {
 	eq(this.evvs('($ n2s 100)'),"100");
 });
 
-test('eval: define function',function(){
+test('define function',function(){
 	var ev=this.ev;
 	var evvs=this.evvs;
 
@@ -180,20 +177,6 @@ test('eval: define function',function(){
 	ev('(:bind_fun my_head (_x . _xs) _x)');
 	eq(evvs('($ my_head (1 2 3))'),1);
 });
-
-test('type inspect',function(){
-	var ct=this.ct;
-	eq(ct('Hoge').inspect(),'Hoge')
-	eq(ct('A',2).inspect(),'A _1 _2');
-	eq(ct('A',2,[]).inspect(),'A _1 _2');
-	eq(ct('A',2,[ct('B')]).inspect(),'A (B) _1');
-});
-
-test('type ctor apply',function() {
-	var ct=this.ct;
-	eq(ct('A',3).apply(ct('B')).inspect(),'A (B) _1 _2');
-});
-
 
 module('HS.Promise');
 
@@ -261,7 +244,13 @@ test('match: matchvars with type',function(){
 });
 
 
-module('HS.Type');
+module('HS.Type',{
+	setup: function(){
+		this.ct=function(name,ac,ta) {
+			return new HS.Type(name,ac,ta);
+		}
+	}
+});
 
 test('#isSameType',function() {
 	ok(HS.Type.Number.isSameType(HS.Type.Number))
@@ -273,4 +262,17 @@ test('#isSameType',function() {
 		HS.Type.Function.apply(HS.Type.Number,HS.Type.Number)));
 	ok(!HS.Type.Function.apply(HS.Type.Number,HS.Type.Number).isSameType(
 		HS.Type.Function.apply(HS.Type.Number,HS.Type.Array)));
+});
+
+test('inspect',function(){
+	var ct=this.ct;
+	eq(ct('Hoge').inspect(),'Hoge')
+	eq(ct('A',2).inspect(),'A _1 _2');
+	eq(ct('A',2,[]).inspect(),'A _1 _2');
+	eq(ct('A',2,[ct('B')]).inspect(),'A (B) _1');
+});
+
+test('ctor apply',function() {
+	var ct=this.ct;
+	eq(ct('A',3).apply(ct('B')).inspect(),'A (B) _1 _2');
 });
