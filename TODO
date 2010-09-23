@@ -1,0 +1,5 @@
+SExpr.isSymbol()
+Refactor: scalar and array value structure
+define function
+type check on applying function
+currying
