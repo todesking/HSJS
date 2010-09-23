@@ -43,7 +43,13 @@
 							if(m.match(s,'(t:=> _1 _2)')) { // assert
 								var expression=m._[1];
 								var expected=m._[2];
-								var actual=engine.eval(expression).value();
+								var actual;
+								try {
+									actual=engine.eval(expression).value();
+								} catch(e) {
+									ok(false,'evaluating '+SExpr.inspect(expression)+' should not error: msg='+e);
+									return;
+								}
 								var msg=SExpr.inspect(expression)+' => '+SExpr.inspect(expected);
 								eq(expected,actual,msg);
 							} else if(m.match(s,'(t:reset)')) {
@@ -59,7 +65,12 @@
 								var msg=SExpr.inspect(expression)+' should throws exception';
 								ok(thrown!==undefined,msg);
 							} else {
-								engine.eval(s);
+								try {
+									engine.eval(s);
+								} catch(e) {
+									ok(false,'evaluating '+SExpr.inspect(s)+' should not error: msg='+e);
+									return;
+								}
 							}
 						}
 					});
