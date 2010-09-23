@@ -1,5 +1,3 @@
-stop(500);
-
 module('SParser.Reader',{
 	setup:function(){
 		this.R=SParser.Reader;
