@@ -157,14 +157,14 @@ HS.Matcher.prototype={
 		return this._match(exp,new SParser().parseSingle(pat_str));
 	},
 	_match: function(exp,pat) {
-		if(pat===null || exp===null) {
-			return exp===pat;
+		if(pat===null) {
+			return exp===null;
 		} else if(pat.isSymbol) {
 			var pat_p=/^_([a-zA-Z0-9]*)(?::(symbol))?$/.exec(pat.name);
 			if(pat_p) {
 				var name=pat_p[1];
 				var type=pat_p[2];
-				if(!type || (type=='symbol' && exp.isSymbol)) {
+				if(!type || (type=='symbol' && exp && exp.isSymbol)) {
 					if(name.length>0)
 						this._[name]=exp;
 					return true;
@@ -172,14 +172,15 @@ HS.Matcher.prototype={
 					return false;
 				}
 			} else {
-				return  exp.isSymbol && exp.name==pat.name;
+				return exp && exp.isSymbol && exp.name==pat.name;
 			}
 		} if(pat.isCons) {
-			return exp.isCons &&
+			return exp &&
+				exp.isCons &&
 				this._match(exp.car,pat.car) &&
 				this._match(exp.cdr,pat.cdr);
 		} else {
-			return exp==pat;
+			return exp===pat;
 		}
 	}
 }

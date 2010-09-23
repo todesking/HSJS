@@ -213,6 +213,7 @@ test('match: list',function() {
 	ok(ma('(a b c)','(a b c)'));
 	ok(!ma('(a b c)','(a b b)'));
 	ok(!ma('(a b c)','(a b c d)'));
+	ok(ma('()','()'));
 });
 
 test('match: matchvars',function(){
@@ -227,6 +228,9 @@ test('match: matchvars',function(){
 	ok(ma('(a b (1 x))','(a _ (_1 _2))'));
 	eq(m._[1],1);
 	eq(m._[2],symbol('x'));
+
+	ok(ma('()','_1'));
+	eq(m._[1],null);
 });
 
 test('match: matchvars with type',function(){
@@ -238,6 +242,7 @@ test('match: matchvars with type',function(){
 	ok(ma('a','_1:symbol'));
 	eq(m._[1],symbol('a'));
 
+	ok(!ma('()','_1:symbol'));
 	ok(!ma('1','_1:symbol'));
 
 	ok(ma('(1 a)','(_1 _2:symbol)'));
