@@ -8,26 +8,18 @@ SExpr.inspect=function(expr) {
 	if(expr.isSymbol)
 		return expr.name;
 	if(expr.isCons) {
-		if(expr.cdr && expr.cdr.isCons) {
-			var result=[];
-			for(var c=expr; ; c=c.cdr) {
-				result.push(SExpr.inspect(c.car));
-				if(c.cdr===null) {
-					break;
-				} else if(!c.cdr.isCons) {
-					result.push('.');
-					result.push(SExpr.inspect(c.cdr));
-					break;
-				}
+		var result=[];
+		for(var c=expr; ; c=c.cdr) {
+			result.push(SExpr.inspect(c.car));
+			if(c.cdr===null) {
+				break;
+			} else if(!c.cdr.isCons) {
+				result.push('.');
+				result.push(SExpr.inspect(c.cdr));
+				break;
 			}
-			return '('+result.join(' ')+')';
-		} else {
-			return '('+
-				SExpr.inspect(expr.car) +
-				' . ' +
-				SExpr.inspect(expr.cdr) +
-				')';
 		}
+		return '('+result.join(' ')+')';
 	}
 	var t=typeof(expr);
 	switch(t) {
