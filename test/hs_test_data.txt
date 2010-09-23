@@ -1,3 +1,11 @@
+(t:case "simple literal"
+	(t:=> 1 1)
+	(t:=> "a" "a")
+	(t:type=> 1 Number)
+	(t:type=> "a" (Array Character))
+)
+
+
 (t:case "binding constant"
 	(t:should_error x)
 	(:bind x 1)

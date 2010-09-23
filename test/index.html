@@ -24,6 +24,64 @@
 		(function(){
 			var base_module_name='HS high-level test';
 			module(base_module_name);
+			function register_test(test_name,test_expressions) {
+				test(test_name,function() {
+					var engine=new HS();
+					var m=new HS.Matcher();
+					function tryEval(expression,force) {
+						try {
+							var result=engine.eval(expression);
+							if(force) result.value();
+							return result;
+						} catch(e) {
+							ok(false,'evaluation of '+SExpr.inspect(expression)+' should not error: msg='+e);
+							throw 'aborted because unexpected error';
+						}
+					}
+					function tryEvalType(expression) {
+						try {
+							return engine.evalType(expression);
+						} catch(e) {
+							ok(false,'type evaluation of '+SExpr.inspect(expression)+' should not error: msg='+e);
+							throw 'aborted because unexpected error';
+						}
+					}
+					for(var c=test_expressions; c!==null; c=c.cdr) {
+						var s=c.car;
+						if(m.match(s,'(t:=> _1 _2)')) { // assert
+							var expression=m._[1];
+							var expected=m._[2];
+							var actual=tryEval(expression,true).value();
+							var msg=SExpr.inspect(expression)+' => '+SExpr.inspect(expected);
+							eq(expected,actual,msg);
+						} else if(m.match(s,'(t:type=> _1 _2)')) {
+							var expected=tryEvalType(m._[2]);
+							var actual=tryEval(m._[1]).type;
+							var msg='typeof '+SExpr.inspect(m._[1])+' should '+expected.inspect()+'. result: '+actual.inspect();
+							ok(expected.isSameType(actual),msg);
+						} else if(m.match(s,'(t:reset)')) {
+							engine=new HS();
+						} else if(m.match(s,'(t:should_error . _1)')) {
+							var expression=m._[1];
+							var thrown=undefined;
+							try {
+								engine.eval(expression);
+							} catch(e) {
+								thrown=e;
+							}
+							var msg=SExpr.inspect(expression)+' should throws exception';
+							ok(thrown!==undefined,msg);
+						} else {
+							try {
+								engine.eval(s);
+							} catch(e) {
+								ok(false,'evaluating '+SExpr.inspect(s)+' should not error: msg='+e);
+								return;
+							}
+						}
+					}
+				});
+			}
 			$('script').each(function(i,script) {
 				if(script.type!='text/hsjs-test') return;
 				var data=$.ajax({type:'GET',async:false,url:script.src}).responseText;
@@ -35,45 +93,7 @@
 						throw 'Test Syntax Error';
 					var test_name=m._[1].isSymbol ? m._[1].name : m._[1];
 					var test_expressions=m._[2];
-					test(test_name,function() {
-						var engine=new HS();
-						var m=new HS.Matcher();
-						for(var c=test_expressions; c!==null; c=c.cdr) {
-							var s=c.car;
-							if(m.match(s,'(t:=> _1 _2)')) { // assert
-								var expression=m._[1];
-								var expected=m._[2];
-								var actual;
-								try {
-									actual=engine.eval(expression).value();
-								} catch(e) {
-									ok(false,'evaluating '+SExpr.inspect(expression)+' should not error: msg='+e);
-									return;
-								}
-								var msg=SExpr.inspect(expression)+' => '+SExpr.inspect(expected);
-								eq(expected,actual,msg);
-							} else if(m.match(s,'(t:reset)')) {
-								engine=new HS();
-							} else if(m.match(s,'(t:should_error . _1)')) {
-								var expression=m._[1];
-								var thrown=undefined;
-								try {
-									engine.eval(expression);
-								} catch(e) {
-									thrown=e;
-								}
-								var msg=SExpr.inspect(expression)+' should throws exception';
-								ok(thrown!==undefined,msg);
-							} else {
-								try {
-									engine.eval(s);
-								} catch(e) {
-									ok(false,'evaluating '+SExpr.inspect(s)+' should not error: msg='+e);
-									return;
-								}
-							}
-						}
-					});
+					register_test(test_name,test_expressions);
 				}
 			 });
 		 })();
