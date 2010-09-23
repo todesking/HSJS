@@ -1,5 +1,43 @@
 var SExpr={}
 
+SExpr.inspect=function(expr) {
+	if(expr===null)
+		return '()';
+	if(expr===undefined)
+		return '<undefined>';
+	if(expr.isSymbol)
+		return expr.name;
+	if(expr.isCons) {
+		if(expr.cdr && expr.cdr.isCons) {
+			var result=[];
+			for(var c=expr; ; c=c.cdr) {
+				result.push(SExpr.inspect(c.car));
+				if(c.cdr===null) {
+					break;
+				} else if(!c.cdr.isCons) {
+					result.push('.');
+					result.push(SExpr.inspect(c.cdr));
+					break;
+				}
+			}
+			return '('+result.join(' ')+')';
+		} else {
+			return '('+
+				SExpr.inspect(expr.car) +
+				' . ' +
+				SExpr.inspect(expr.cdr) +
+				')';
+		}
+	}
+	var t=typeof(expr);
+	switch(t) {
+		case 'string':
+			return '"'+expr.replace('"','\\"')+'"';
+		default:
+			return ''+expr;
+	}
+}
+
 SExpr.Cons=function(car,cdr) {
 	this.car=car;
 	this.cdr=cdr;

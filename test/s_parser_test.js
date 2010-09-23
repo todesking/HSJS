@@ -109,3 +109,22 @@ test('.makeList',function(){
 	eq(C.makeList(1),new C(1,null));
 	eq(C.makeList(1,2),new C(1,new C(2,null)));
 });
+
+module('SExpr');
+
+test('.inspect(expr)',function() {
+	var p=new SParser();
+	var isp=function(src) {
+		return SExpr.inspect(p.parseSingle(src));
+	};
+	eq(isp('1'),'1');
+	eq(isp('"hoge"'),'"hoge"');
+	eq(isp('"ho\\"ge"'),'"ho\\"ge"');
+	eq(isp('()'),'()');
+	eq(SExpr.inspect(undefined),'<undefined>');
+	eq(isp('hoge'),'hoge');
+	eq(isp('(1 . 2)'),'(1 . 2)');
+	eq(isp('(1 2 3)'),'(1 2 3)');
+	eq(isp('(1 2 3 . 4)'),'(1 2 3 . 4)');
+	eq(isp('(1 (2 . 3) . 4)'),'(1 (2 . 3) . 4)');
+});
