@@ -1,0 +1,5 @@
+(t:case "binding constant"
+	(t:should_error x)
+	(:bind x 1)
+	(t:=> x 1)
+)

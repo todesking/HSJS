@@ -7,6 +7,8 @@
 	<link rel="stylesheet" href="../vendor/qunit/qunit/qunit.css" type="text/css" media="screen">
 	<script type="text/javascript" src="../vendor/qunit/qunit/qunit.js"></script>
 
+	<script type="text/javascript" src="./jquery-1.4.2.min.js"></script>
+
 	<!-- Test helpers -->
 	<script type="text/javascript" src="./test_helper.js"></script>
 
@@ -16,6 +18,55 @@
 
 	<script type="text/javascript" src="../src/hs.js"></script>
 	<script type="text/javascript" src="./hs_test.js"></script>
+
+	<script type="text/hsjs-test" src="hs_test_data.txt"></script>
+	<script type="text/javascript">
+		(function(){
+			var base_module_name='HS high-level test';
+			module(base_module_name);
+			$('script').each(function(i,script) {
+				if(script.type!='text/hsjs-test') return;
+				var data=$.ajax({type:'GET',async:false,url:script.src}).responseText;
+				var parsed=new SParser().parse(data);
+				var m=new HS.Matcher();
+				for(var i=0;i<parsed.length;i++) {
+					var s=parsed[i];
+					if(!m.match(s,'(t:case _1 . _2)'))
+						throw 'Test Syntax Error';
+					var test_name=m._[1].isSymbol ? m._[1].name : m._[1];
+					var test_expressions=m._[2];
+					test(test_name,function() {
+						var engine=new HS();
+						var m=new HS.Matcher();
+						for(var c=test_expressions; c!==null; c=c.cdr) {
+							var s=c.car;
+							if(m.match(s,'(t:=> _1 _2)')) { // assert
+								var expression=m._[1];
+								var expected=m._[2];
+								var actual=engine.eval(expression).value();
+								var msg=SExpr.inspect(expression)+' => '+SExpr.inspect(expected);
+								eq(expected,actual,msg);
+							} else if(m.match(s,'(t:reset)')) {
+								engine=new HS();
+							} else if(m.match(s,'(t:should_error . _1)')) {
+								var expression=m._[1];
+								var thrown=undefined;
+								try {
+									engine.eval(expression);
+								} catch(e) {
+									thrown=e;
+								}
+								var msg=SExpr.inspect(expression)+' should throws exception';
+								ok(thrown!==undefined,msg);
+							} else {
+								engine.eval(s);
+							}
+						}
+					});
+				}
+			 });
+		 })();
+	</script>
 </head>
 <body>
 	<h1 id="qunit-header">HSJS Test Suite</h1>
