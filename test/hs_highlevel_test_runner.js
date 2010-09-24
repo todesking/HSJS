@@ -3,10 +3,9 @@ var register_hs_highlevel_tests=(function() {
 		test(test_name,function() {
 			var engine=new HS();
 			var m=new HS.Matcher();
-			function tryEval(expression,force) {
+			function tryEval(expression) {
 				try {
 					var result=engine.eval(expression);
-					if(force) result.value();
 					return result;
 				} catch(e) {
 					ok(false,'evaluation of '+SExpr.inspect(expression)+' should not error: msg='+e);
@@ -21,12 +20,26 @@ var register_hs_highlevel_tests=(function() {
 					throw 'aborted because unexpected error';
 				}
 			}
+			// TODO: not suitable for infinite list
+			function forceAll(value) {
+				return {
+					type: value.type,
+					value: function(){
+						if(!value.isArray)
+							return value.value();
+						var list=[];
+						for(var c=value; c.isArray; c=c.cdr())
+							list.push(forceAll(c.car()).value());
+						return SExpr.Cons.makeList.apply(null,list);
+					}
+				}
+			}
 			for(var c=test_expressions; c!==null; c=c.cdr) {
 				var s=c.car;
 				if(m.match(s,'(t:=> _1 _2)')) { // assert
 					var expression=m._[1];
 					var expected=m._[2];
-					var actual=tryEval(expression,true).value();
+					var actual=forceAll(tryEval(expression)).value();
 					var msg=SExpr.inspect(expression)+' => '+SExpr.inspect(expected);
 					eq(expected,actual,msg);
 				} else if(m.match(s,'(t:type=> _1 _2)')) {

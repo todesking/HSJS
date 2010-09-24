@@ -5,6 +5,21 @@
 	(t:type=> "a" (Array Character))
 )
 
+(t:case "list"
+	(t:=> () ())
+	(t:type=> (1 2 3) (Array Number))
+	(t:=> (1 2 3) (1 2 3))
+	(t:type=> ("a" "b") (Array (Array Character)))
+	(t:type=> ((1) (1 2)) (Array (Array Number)))
+	(t:=> ((1) (1 2)) ((1) (1 2)))
+)
+
+(t:case "list with non-literal element"
+	(:bind a 1)
+	(t:type=> (a 2 3) (Array Number))
+	(t:type=> (a a) (Array Number))
+	(t:=> (a 2 3) (1 2 3))
+)
 
 (t:case "binding constant"
 	(t:should_error x)
