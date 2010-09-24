@@ -5,3 +5,7 @@ Refactor: scalar and array value structure
 define function
 type check on applying function
 currying
+
+* type decl
+	should_error (:def x) x
+	ok (:def x (Array Number)) (:bind x ()) typeof(x)==(Array Number)

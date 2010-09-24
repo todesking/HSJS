@@ -21,8 +21,38 @@
 	(t:=> (a 2 3) (1 2 3))
 )
 
+(t:case "range literal (finite)"
+	(t:=> ([..] 1 3) (1 2 3))
+)
+
 (t:case "binding constant"
 	(t:should_error x)
 	(:bind x 1)
 	(t:=> x 1)
+	(t:type=> x Number)
+	(t:should_error (:bind x 10))
+)
+
+(t:case "type decl"
+	(:def a Number)
+	(t:type=> a Number)
+	(t:should_error (:bind a "hoge"))
+	(:bind a 100)
+	(t:type=> a Number)
+	(t:=> a 100)
+
+	(t:should_error (:def b UndefType))
+
+	(:def an (Array Number))
+	(:bind an (1 2 3))
+	(t:=> an (1 2 3))
+	(t:type=> an (Array Number))
+)
+
+(t:case "type decl: function"
+	(:def a (-> Number Number))
+	(t:type=> a (-> Number Number))
+
+	(:def b (-> Number (Array Number) Number))
+	(t:type=> b (-> Number (Array Number) Number))
 )
