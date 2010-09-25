@@ -1,5 +1,4 @@
 SExpr.isSymbol()
-SExpr.isCons()
 SExpr.Cons.makeListA()
 Refactor: scalar and array value structure
 define function

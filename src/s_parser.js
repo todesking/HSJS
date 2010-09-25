@@ -29,6 +29,9 @@ SExpr.inspect=function(expr) {
 			return ''+expr;
 	}
 }
+SExpr.isCons=function(expr) {
+	return expr && expr.isCons;
+}
 
 SExpr.Cons=function(car,cdr) {
 	this.car=car;

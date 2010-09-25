@@ -129,3 +129,19 @@ test('.inspect(expr)',function() {
 	eq(isp('(1 (2 . 3) . 4)'),'(1 (2 . 3) . 4)');
 	eq(isp('(1)'),'(1)');
 });
+
+test('.isCons(expr)',function() {
+	var p=new SParser();
+	function cons(str) {
+		var expr=p.parseSingle(str);
+		ok(SExpr.isCons(expr),SExpr.inspect(expr)+' is cons');
+	}
+	function notCons(str) {
+		var expr=p.parseSingle(str);
+		ok(!SExpr.isCons(expr),SExpr.inspect(expr)+' is not cons');
+	}
+	cons('(a . b)');
+	cons('(1 2 3)');
+	notCons('()');
+	notCons('1');
+});
