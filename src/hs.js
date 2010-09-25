@@ -47,7 +47,7 @@ HS.prototype={
 			return this.env.get(m._[1].name);
 		} else if(exp===null) {
 			return this._makeScalar(exp);
-		} else if(exp.isCons) { // list
+		} else if(SExpr.isCons(exp)) { // list
 			return this._makeList(this._arrayTypeOf(exp),exp);
 		} else { // const
 			return this._makeScalar(exp);
@@ -159,12 +159,12 @@ HS.Matcher.prototype={
 	_match: function(exp,pat) {
 		if(pat===null) {
 			return exp===null;
-		} else if(pat.isSymbol) {
+		} else if(SExpr.isSymbol(pat)) {
 			var pat_p=/^_([a-zA-Z0-9]*)(?::(symbol))?$/.exec(pat.name);
 			if(pat_p) {
 				var name=pat_p[1];
 				var type=pat_p[2];
-				if(!type || (type=='symbol' && exp && exp.isSymbol)) {
+				if(!type || (type=='symbol' && SExpr.isSymbol(exp))) {
 					if(name.length>0)
 						this._[name]=exp;
 					return true;
@@ -172,11 +172,10 @@ HS.Matcher.prototype={
 					return false;
 				}
 			} else {
-				return exp && exp.isSymbol && exp.name==pat.name;
+				return SExpr.isSymbol(exp) && exp.name==pat.name;
 			}
-		} else if(pat.isCons) {
-			return exp &&
-				exp.isCons &&
+		} else if(SExpr.isCons(pat)) {
+			return SExpr.isCons(exp) &&
 				this._match(exp.car,pat.car) &&
 				this._match(exp.cdr,pat.cdr);
 		} else {
