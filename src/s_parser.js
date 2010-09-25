@@ -33,6 +33,10 @@ SExpr.isCons=function(expr) {
 	return expr && expr.isCons;
 }
 
+SExpr.isSymbol=function(expr) {
+	return expr && expr.isSymbol;
+}
+
 SExpr.Cons=function(car,cdr) {
 	this.car=car;
 	this.cdr=cdr;

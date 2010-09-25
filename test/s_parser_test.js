@@ -145,3 +145,21 @@ test('.isCons(expr)',function() {
 	notCons('()');
 	notCons('1');
 });
+
+test('.isSymbol(expr)',function() {
+	var p=new SParser();
+	function sym(str){
+		var e=p.parseSingle(str);
+		ok(SExpr.isSymbol(e),SExpr.inspect(e)+' is symbol');
+	}
+	function notSym(str){
+		var e=p.parseSingle(str);
+		ok(!SExpr.isSymbol(e),SExpr.inspect(e)+' is not symbol');
+	}
+
+	sym('a');
+	sym('_$hoge');
+	notSym('1');
+	notSym('()');
+	notSym('(a b)');
+});
