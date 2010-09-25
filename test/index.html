@@ -28,6 +28,14 @@
 			var data=$.ajax({type:'GET',async:false,url:script.src}).responseText;
 			register_hs_highlevel_tests(data);
 		 });
+		setTimeout(function() {
+				var hide_passed=$('#qunit-filter-pass');
+				if(hide_passed.length==1) {
+					hide_passed.click();
+				} else {
+					setTimeout(caller.callee,100);
+				}
+		},100);
 	</script>
 </head>
 <body>
