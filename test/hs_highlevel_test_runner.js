@@ -49,6 +49,9 @@ var register_hs_highlevel_tests=(function() {
 					ok(expected.isSameType(actual),msg);
 				} else if(m.match(s,'(t:reset)')) {
 					engine=new HS();
+				} else if(m.match(s,'(t:pend)')) {
+					if(console && console.log) console.log('test "'+test_name+'": pending')
+					return;
 				} else if(m.match(s,'(t:should_error . _1)')) {
 					var expression=m._[1];
 					var thrown=undefined;

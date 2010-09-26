@@ -56,3 +56,42 @@
 	(:def b (-> Number (Array Number) Number))
 	(t:type=> b (-> Number (Array Number) Number))
 )
+
+(t:case "function"
+	(t:pend)
+	(:def id_n (-> Number Number))
+	(:bind_fun id_n (x) x)
+	(t:=> ($ id_n 1) 1)
+	(t:should_error ($ id_n "string"))
+
+	(:def t_head_n (-> (Array Number) Number))
+	(:bind_fun t_head_n
+		(|= ((x . xs)) x))
+	(t:=> ($ t_head_n (1 2 3)) 1)
+	(t:should_error ($ t_head_n ()))
+	(t:should_error ($ t_head_n 1))
+
+	(:def t_sum_of (-> (Array Number) Number))
+	(:bind_fun t_sum_of
+		(|= ((x . xs)) ($ + 1 ($ t_sum_of xs)))
+		(|= (()) 0)
+		)
+	(t:=> ($ t_sum_of (1 2 3)) 6)
+	(t:=> ($ t_sum_of ()) 0)
+	(t:should_error ($ t_sum_of 10))
+
+	(:def t_length_n (-> (Array Number) Number))
+	(:bind_fun t_tail_n
+		(|= (()) 0)
+		(|= ((x . xs)) ($ t_tail_n xs))
+		)
+	(t:=> (t_length_n (1 2 3)) 4)
+
+	(:def t_+_n (-> Number Number Number))
+	(:bind_fun t_+_n (a b) (+ a b))
+	(t:=> ($ + 1 2) 3)
+	(t:=> ($ t_+_n 1 2) 3)
+	(t:type=> ($ t_+_n 1) (-> Number Number))
+	(t:=> ($ ($ t_+_n 1) 2) 3)
+)
+
